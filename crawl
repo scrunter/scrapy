@@ -1,0 +1,26 @@
+import scrapy
+from scrapy import Request
+from scrapy.linkextractors.lxmlhtml import LxmlLinkExtractor
+
+
+class WebSpider(scrapy.Spider):
+    name = "webspider"
+
+    def __init__(self):
+        super().__init__()
+        self.link_extractor = LxmlLinkExtractor(allow="\.br\/")
+        self.collecton_file = open("collection.jsonl", 'w')
+
+    start_urls = [
+        "https://www.uol.com.br/"
+    ]
+
+    def parse(self, response):
+        data = {
+            "url": response.request.url,
+            "html_content": response.body
+        }
+        self.collecton_file.write(f"{data}\n")
+
+        for link in self.link_extractor.extract_links(response):
+            yield Request(link.url, callback=self.parse)
